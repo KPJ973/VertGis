@@ -9,6 +9,7 @@ geopandas
 fiona
 pyproj
 rasterio
+aiohttp==3.10.9
 
 # Visualisation et cartographie
 leafmap>=0.35.2
