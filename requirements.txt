@@ -42,6 +42,5 @@ git+https://github.com/giswqs/geemap
 # streamlit-keplergl
 # tropycal
 # altair<5
-streamlit
-aiohttp==3.8.1
+
 --find-links=https://girder.github.io/large_image_wheels GDAL

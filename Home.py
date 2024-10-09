@@ -6,14 +6,14 @@ st.set_page_config(layout="wide")
 st.sidebar.title("About")
 st.sidebar.info(
     """
-    - Web App URL: <https://vertgis.streamlit.app>
+    - Web App URL: <Lien de L'app>
     """
 )
 
 st.sidebar.title("Contact")
 st.sidebar.info(
     """
-    Picenni Kenzo [GitHub]() | [Twitter](https://x.com/dur_vert) | [YouTube]() | [LinkedIn](www.linkedin.com/in/kenzo-paul-julian-a56b8950)
+    Picenni Kenzo [GitHub]() | [Twitter]() | [YouTube]() | [LinkedIn]()
     """
 )
 
@@ -30,9 +30,11 @@ st.title("VertGIS")
 
 st.markdown(
     """
-    Cette application web multi-pages illustre diverses applications interactives créées avec Streamlit et des bibliothèques de cartographie open-source telles que leafmap, geemap, pydeck et kepler.gl. 
-    J'ai énormément appris de Sebastien Mischler, Olivier Donzé et Qiusheng Wu, dont les connaissances ont été inestimables pour approfondir ma compréhension de ces outils. 
-    Ce projet est open-source et vous êtes vivement encouragés à contribuer avec vos commentaires, questions, ressources et applications.
+    This multi-page web app demonstrates various interactive web apps created using [streamlit](https://streamlit.io) and open-source mapping libraries, 
+    such as [leafmap](https://leafmap.org), [geemap](https://geemap.org), [pydeck](https://deckgl.readthedocs.io), and [kepler.gl](https://docs.kepler.gl/docs/keplergl-jupyter).
+    This is an open-source project and you are very welcome to contribute your comments, questions, resources, and apps as [issues](https://github.com/giswqs/streamlit-geospatial/issues) or 
+    [pull requests](https://github.com/giswqs/streamlit-geospatial/pulls) to the [GitHub repository](https://github.com/giswqs/streamlit-geospatial).
+
     """
 )
 
