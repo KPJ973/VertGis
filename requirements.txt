@@ -1,0 +1,46 @@
+# Dépendances principales
+streamlit
+folium
+streamlit-folium
+gdal
+# Traitement géospatial
+GDAL
+geopandas
+fiona
+pyproj
+rasterio
+
+# Visualisation et cartographie
+leafmap>=0.35.2
+plotly
+palettable
+# cartopy  # Commenté car peut causer des problèmes d'installation
+
+# Traitement d'images et vidéo
+Pillow
+imageio
+imageio[ffmpeg]
+opencv-python-headless
+moviepy
+ffmpeg-python
+
+# Autres utilitaires
+numpy
+owslib
+trimesh
+
+# Dépendances GitHub
+git+https://github.com/giswqs/geemap
+
+# Dépendances spécifiques (décommentez si nécessaire)
+# ipywidgets<8.0.5
+# jupyter-server-proxy
+# keplergl
+# localtileserver
+# nbserverproxy
+# streamlit-bokeh-events
+# streamlit-keplergl
+# tropycal
+# altair<5
+
+--find-links=https://girder.github.io/large_image_wheels GDAL
