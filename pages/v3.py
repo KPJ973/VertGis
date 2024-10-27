@@ -98,6 +98,17 @@ def get_wms_url(bbox, width, height, time, mode):
     }
     return base_url + "&" + "&".join(f"{k}={v}" for k, v in params.items())
 
+def adjust_dimensions(bbox, width, height):
+    bbox_ratio = (bbox[2] - bbox[0]) / (bbox[3] - bbox[1])
+    requested_ratio = width / height
+
+    if bbox_ratio > requested_ratio:
+        height = int(width / bbox_ratio)
+    else:
+        width = int(height * bbox_ratio)
+
+    return width, height
+
 def add_date_to_image(image, date):
     year = str(date)[:4]
     draw = ImageDraw.Draw(image)
