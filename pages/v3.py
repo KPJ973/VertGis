@@ -99,11 +99,10 @@ def get_wms_url(bbox, width, height, time, mode):
     return base_url + "&" + "&".join(f"{k}={v}" for k, v in params.items())
 
 def add_date_to_image(image, date):
-    # Extraire uniquement l'année de la date
     year = str(date)[:4]
     draw = ImageDraw.Draw(image)
     font = ImageFont.load_default()
-    text = year  # Utiliser seulement l'année pour l'annotation
+    text = year
 
     bbox = draw.textbbox((0, 0), text, font=font)
     textwidth = bbox[2] - bbox[0]
@@ -238,7 +237,9 @@ def app():
             submitted = st.form_submit_button("Générer le Timelapse")
 
         if submitted and data is not None:
-            # Conversion des années en dates complètes pour les cartes
+            gdf = uploaded_file_to_gdf(data)
+            bbox = tuple(gdf.to_crs(epsg=2056).total_bounds)
+            
             if mode == "Cartes historiques":
                 start_date = next(date for date in MAP_DATES if date // 10000 == start_year)
                 end_date = next(date for date in MAP_DATES if date // 10000 == end_year)
@@ -246,7 +247,21 @@ def app():
             else:
                 available_years = [year for year in ORTHO_DATES if start_year <= year <= end_year]
 
-            # Suite du code pour générer les timelapses...
+            width, height = adjust_dimensions(bbox, width, height)
+
+            images = asyncio.run(download_images(bbox, width, height, available_years, mode))
+
+            if images:
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    results = process_images_stream(images, format_option, speed, temp_dir)
+
+                    for format, paths in results.items():
+                        if isinstance(paths, list):
+                            for path in paths:
+                                batch_number = path.split("_")[-1].split(".")[0]
+                                st.markdown(get_binary_file_downloader_html(path, f'Images individuelles (ZIP) - Lot {batch_number}'), unsafe_allow_html=True)
+                        else:
+                            st.markdown(get_binary_file_downloader_html(paths, f'Timelapse {format}'), unsafe_allow_html=True)
 
 if __name__ == "__main__":
     app()
