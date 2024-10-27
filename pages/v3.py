@@ -63,6 +63,26 @@ MAP_YEARS = sorted(set(date // 10000 for date in MAP_DATES))
 ORTHO_WMS_BASE_URL = "https://wms.geo.admin.ch/?LAYERS=ch.swisstopo.swissimage-product&FORMAT=image/jpeg"
 MAP_WMS_BASE_URL = "https://wms.geo.admin.ch/?LAYERS=ch.swisstopo.zeitreihen&FORMAT=image/png"
 
+@st.cache_data
+def uploaded_file_to_gdf(data):
+    import tempfile
+    import os
+    import uuid
+
+    _, file_extension = os.path.splitext(data.name)
+    file_id = str(uuid.uuid4())
+    file_path = os.path.join(tempfile.gettempdir(), f"{file_id}{file_extension}")
+
+    with open(file_path, "wb") as file:
+        file.write(data.getbuffer())
+
+    if file_path.lower().endswith(".kml"):
+        gdf = gpd.read_file(file_path, driver="KML")
+    else:
+        gdf = gpd.read_file(file_path)
+
+    return gdf
+
 @lru_cache(maxsize=128)
 def get_wms_url(bbox, width, height, time, mode):
     base_url = ORTHO_WMS_BASE_URL if mode == "Orthophotos" else MAP_WMS_BASE_URL
@@ -77,6 +97,86 @@ def get_wms_url(bbox, width, height, time, mode):
         "TIME": str(time)
     }
     return base_url + "&" + "&".join(f"{k}={v}" for k, v in params.items())
+
+def add_date_to_image(image, date):
+    # Extraire uniquement l'année de la date
+    year = str(date)[:4]
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.load_default()
+    text = year  # Utiliser seulement l'année pour l'annotation
+
+    bbox = draw.textbbox((0, 0), text, font=font)
+    textwidth = bbox[2] - bbox[0]
+    textheight = bbox[3] - bbox[1]
+
+    margin = 10
+    x = image.width - textwidth - margin
+    y = image.height - textheight - margin
+    draw.rectangle((x-5, y-5, x+textwidth+5, y+textheight+5), fill="black")
+    draw.text((x, y), text, font=font, fill="white")
+    return image
+
+async def fetch_image(session, url, date, semaphore):
+    async with semaphore:
+        try:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    data = await response.read()
+                    img = Image.open(BytesIO(data))
+                    return add_date_to_image(img, date)
+        except Exception as e:
+            logger.error(f"Erreur lors de la récupération de l'image pour la date {date}: {str(e)}")
+    return None
+
+async def download_images(bbox, width, height, available_years, mode):
+    semaphore = asyncio.Semaphore(20)
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_image(session, get_wms_url(bbox, width, height, year, mode), year, semaphore) for year in available_years]
+        return await asyncio.gather(*tasks)
+
+def process_images_stream(images, format_option, speed, temp_dir, batch_size=20):
+    results = {}
+
+    if "GIF" in format_option:
+        gif_path = os.path.join(temp_dir, "timelapse.gif")
+        with imageio.get_writer(gif_path, mode='I', fps=speed, loop=0) as writer:
+            for img in images:
+                if img is not None:
+                    writer.append_data(np.array(img))
+        results["GIF"] = gif_path
+
+    if "MP4" in format_option:
+        mp4_path = os.path.join(temp_dir, "timelapse.mp4")
+        with imageio.get_writer(mp4_path, fps=speed, quality=9) as writer:
+            for img in images:
+                if img is not None:
+                    writer.append_data(np.array(img))
+        results["MP4"] = mp4_path
+
+    if "Images individuelles (ZIP)" in format_option:
+        zip_paths = []
+        num_batches = (len(images) + batch_size - 1) // batch_size
+        for batch_index in range(num_batches):
+            batch_zip_path = os.path.join(temp_dir, f"images_batch_{batch_index + 1}.zip")
+            with zipfile.ZipFile(batch_zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                batch_images = images[batch_index * batch_size:(batch_index + 1) * batch_size]
+                for i, img in enumerate(batch_images):
+                    if img is not None:
+                        img_path = os.path.join(temp_dir, f"image_{batch_index}_{i}.png")
+                        img.save(img_path)
+                        zipf.write(img_path, os.path.basename(img_path))
+                        os.remove(img_path)
+            zip_paths.append(batch_zip_path)
+        results["ZIP"] = zip_paths
+
+    return results
+
+def get_binary_file_downloader_html(bin_file, file_label='File'):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    bin_str = base64.b64encode(data).decode()
+    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Télécharger {file_label}</a>'
+    return href
 
 def app():
     st.title("Générateur de Timelapse Suisse (Orthophotos et Cartes historiques)")
