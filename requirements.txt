@@ -1,4 +1,6 @@
+# Mise à jour de pip
 --upgrade pip
+
 # Dépendances principales
 streamlit
 folium
