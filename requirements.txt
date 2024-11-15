@@ -29,7 +29,7 @@ ffmpeg-python
 numpy
 owslib
 trimesh
-
+boto3
 # Dépendances GitHub
 git+https://github.com/giswqs/geemap
 
