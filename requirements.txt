@@ -3,8 +3,8 @@ streamlit
 folium
 streamlit-folium
 gdal
+
 # Traitement géospatial
-GDAL
 geopandas
 fiona
 pyproj
@@ -30,18 +30,9 @@ numpy
 owslib
 trimesh
 boto3
+
 # Dépendances GitHub
 git+https://github.com/giswqs/geemap
 
-# Dépendances spécifiques (décommentez si nécessaire)
-# ipywidgets<8.0.5
-# jupyter-server-proxy
-# keplergl
-# localtileserver
-# nbserverproxy
-# streamlit-bokeh-events
-# streamlit-keplergl
-# tropycal
-# altair<5
-
---find-links=https://girder.github.io/large_image_wheels GDAL
+# Lien pour trouver les roues de GDAL (optionnel, gardez si nécessaire)
+--find-links=https://girder.github.io/large_image_wheels gdal
